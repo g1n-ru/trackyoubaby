@@ -1,0 +1,11 @@
+{
+    "mcpServers": {
+        "laravel-boost": {
+            "command": "/Applications/MAMP/bin/php/php8.3.30/bin/php",
+            "args": [
+                "/Users/admin/Sites/trackyoubaby.dev/artisan",
+                "boost:mcp"
+            ]
+        }
+    }
+}
