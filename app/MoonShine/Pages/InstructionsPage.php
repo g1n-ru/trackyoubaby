@@ -77,7 +77,7 @@ class InstructionsPage extends Page
                 e($appUrl . '/click?subid=')
                 . $this->highlight('campaign_name')
                 . e('&landing=')
-                . $this->highlight('https://your-landing.com/page')
+                . $this->highlight(config('app.url') . '/landing-example')
             )
             . $this->table(
                 ['Параметр', '', 'Описание'],
@@ -92,6 +92,7 @@ class InstructionsPage extends Page
         );
     }
 
+    /** @noinspection JSUnresolvedReference, CommaExpressionJS, JSValidateTypes */
     private function renderSnippetInstructions(string $appUrl, string $counterId): string
     {
         $hl = fn(string $val): string => $this->highlight($val);
@@ -170,14 +171,7 @@ class InstructionsPage extends Page
             . '&rarr; выберите диапазон дат '
             . '&rarr; <strong>Скачать</strong>.</p>'
             . $this->label('Пример файла')
-            . $this->csvPreview(
-                ['UserId', 'Target', 'DateTime', 'Price', 'Currency', 'OrderId'],
-                [
-                    ['1039482856', 'conversion', '2026-02-18 14:23:07', '5000', 'RUB', 'ORD-1041'],
-                    ['7291038564', 'conversion', '2026-02-19 09:11:42', '12500', 'RUB', 'ORD-1042'],
-                    ['3847261095', 'conversion', '2026-02-20 17:45:19', '890', 'USD', 'ORD-1043'],
-                ]
-            )
+            . $this->csvPreview()
             . $this->hint('Файл готов для загрузки в Яндекс Метрику без дополнительной обработки.')
         );
     }
@@ -303,7 +297,10 @@ class InstructionsPage extends Page
 
     private function card(string $description, string $body): string
     {
-        return '<div style="padding:24px;border-radius:12px;background:var(--ms-card-bg-color);color:var(--ms-card-color);border:1px solid var(--color-base-stroke)">'
+        $bg = 'var(--ms-card-bg-color)';
+        $color = 'var(--ms-card-color)';
+
+        return '<div style="padding:24px;border-radius:12px;background:' . $bg . ';color:' . $color . ';border:1px solid var(--color-base-stroke)">'
             . '<p style="margin-bottom:20px;font-size:15px;line-height:1.6">' . $description . '</p>'
             . $body
             . '</div>';
@@ -315,7 +312,7 @@ class InstructionsPage extends Page
         $checkIcon = '<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 24 24" fill="currentColor" style="width:16px;height:16px"><path fill-rule="evenodd" d="M7.502 6h7.128A3.375 3.375 0 0 1 18 9.375v9.375a3 3 0 0 0 3-3V6.108c0-1.505-1.125-2.811-2.664-2.94a48.972 48.972 0 0 0-.673-.05A3 3 0 0 0 15 1.5h-1.5a3 3 0 0 0-2.663 1.618c-.225.015-.45.032-.673.05C8.662 3.295 7.554 4.542 7.502 6ZM13.5 3A1.5 1.5 0 0 0 12 4.5h4.5A1.5 1.5 0 0 0 15 3h-1.5Z" clip-rule="evenodd"/><path fill-rule="evenodd" d="M3 9.375C3 8.339 3.84 7.5 4.875 7.5h9.75c1.036 0 1.875.84 1.875 1.875v11.25c0 1.035-.84 1.875-1.875 1.875h-9.75A1.875 1.875 0 0 1 3 20.625V9.375Zm9.586 4.594a.75.75 0 0 0-1.172-.938l-2.476 3.096-.908-.907a.75.75 0 0 0-1.06 1.06l1.5 1.5a.75.75 0 0 0 1.116-.062l3-3.75Z" clip-rule="evenodd"/></svg>';
 
         return '<div style="position:relative;margin-bottom:16px" x-data="{copied:false}">'
-            . '<pre style="padding:16px;padding-right:48px;border-radius:8px;background:var(--color-base-100);color:var(--color-base-text);overflow-x:auto;font-size:13px;line-height:1.7;border:1px solid var(--color-base-stroke);margin:0" x-ref="code">'
+            . '<pre style="padding:16px 48px 16px 16px;border-radius:8px;background:var(--color-base-100);color:var(--color-base-text);overflow-x:auto;font-size:13px;line-height:1.7;border:1px solid var(--color-base-stroke);margin:0" x-ref="code">'
             . '<code>' . $code . '</code></pre>'
             . '<button @click="navigator.clipboard.writeText($refs.code.textContent);copied=true;setTimeout(()=>copied=false,1500)" '
             . 'class="snippet-copy" '
@@ -368,9 +365,15 @@ class InstructionsPage extends Page
         return '<p style="margin-top:8px;font-size:13px;color:var(--color-base-400);line-height:1.6">' . $text . '</p>';
     }
 
-    /** @param list<string> $headers */
-    private function csvPreview(array $headers, array $rows): string
+    /**  */
+    private function csvPreview(): string
     {
+        $rows = [
+            ['1039482856', 'conversion', '2026-02-18 14:23:07', '5000', 'RUB', 'ORD-1041'],
+            ['7291038564', 'conversion', '2026-02-19 09:11:42', '12500', 'RUB', 'ORD-1042'],
+            ['3847261095', 'conversion', '2026-02-20 17:45:19', '890', 'USD', 'ORD-1043'],
+        ];
+        $headers = ['UserId', 'Target', 'DateTime', 'Price', 'Currency', 'OrderId'];
         $html = '<div style="overflow-x:auto;margin-bottom:16px;border:1px solid var(--color-base-stroke);border-radius:8px">'
             . '<table style="width:100%;font-size:13px;font-family:monospace;color:var(--color-base-text);border-collapse:collapse">'
             . '<thead><tr>';
