@@ -6,7 +6,7 @@ temp_project/
 storage/logs/*.log
 .env
 .env.backup
-docker/
+docker/nginx/
 tests/
 .claude/
 .idea/

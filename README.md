@@ -1,30 +1,50 @@
-# Yandex Tracker
+# TrackYouBaby
 
 Трекинг кликов из Яндекс Директ с привязкой Yandex Metrica Client ID, фиксацией конверсий и CSV-экспортом офлайн-конверсий.
 
-**Стек:** Laravel 12, MoonShine 4, MySQL
+**Стек:** Laravel 12, MoonShine 4, MySQL, Redis, Nginx, Docker
+
+## Требования
+
+- Docker & Docker Compose
+- Домен с DNS A-записью, указывающей на сервер
 
 ## Установка
 
 ```bash
-composer install
+git clone <repo-url> /home/trackyoubaby
+cd /home/trackyoubaby
 cp .env.example .env
-php artisan key:generate
-php artisan migrate
 ```
 
-## Настройка
-
-В `.env` заполните:
+Заполните `.env`:
 
 ```
+APP_DOMAIN=your-domain.com
+APP_KEY=               # сгенерируется ниже
+DB_PASSWORD=secret
 YM_COUNTER_ID=12345678
 YM_TOKEN=your_oauth_token
-DEFAULT_LANDING_URL=https://your-landing.com
 ```
+
+Запуск:
+
+```bash
+docker compose build
+docker compose up -d mysql redis
+bash docker/init-letsencrypt.sh
+docker compose up -d
+docker compose exec app php artisan key:generate
+```
+
+Приложение доступно по `https://your-domain.com`.
+
+## Переменные окружения
 
 | Переменная | Описание | По умолчанию |
 |---|---|---|
+| `APP_DOMAIN` | Домен приложения | — |
+| `DB_PASSWORD` | Пароль MySQL root | — |
 | `YM_COUNTER_ID` | ID счётчика Яндекс Метрики | — |
 | `YM_TOKEN` | OAuth-токен Яндекс Метрики | — |
 | `YM_API_URL` | URL API Метрики | `https://mc.yandex.ru/collect` |
@@ -32,11 +52,35 @@ DEFAULT_LANDING_URL=https://your-landing.com
 | `RATE_LIMIT_CLIENTID` | Лимит запросов /clientid в минуту | 120 |
 | `RATE_LIMIT_CONVERSION` | Лимит запросов /conversion в минуту | 30 |
 | `TRACKER_COOKIE_MAX_AGE` | Время жизни cookie click_id (минуты) | 43200 |
-| `TRACKER_COOKIE_DOMAIN` | Домен cookie | — |
-| `TRACKER_COOKIE_SECURE` | Secure-флаг cookie | false |
+| `TRACKER_COOKIE_DOMAIN` | Домен cookie | `${APP_DOMAIN}` |
 | `RETRY_MAX_ATTEMPTS` | Макс. попыток отправки в Метрику | 3 |
-| `DEFAULT_LANDING_URL` | URL лендинга по умолчанию | `https://example.com` |
+| `DEFAULT_LANDING_URL` | URL лендинга по умолчанию | `https://${APP_DOMAIN}/landing-example` |
 | `DATA_RETENTION_DAYS` | Хранение данных (дней) | 90 |
+
+## Docker-сервисы
+
+| Сервис | Образ | Назначение |
+|--------|-------|------------|
+| `app` | PHP 8.3-FPM Alpine | PHP-FPM, миграции, оптимизация |
+| `nginx` | nginx:alpine | Веб-сервер, SSL termination |
+| `mysql` | mysql:8.4 | База данных |
+| `redis` | redis:7-alpine | Кеш, очередь, сессии |
+| `worker` | = app | Обработка очереди |
+| `scheduler` | = app | Cron-задачи Laravel |
+| `certbot` | certbot/certbot | SSL-сертификат Let's Encrypt |
+
+## Управление
+
+```bash
+docker compose ps                  # статус сервисов
+docker compose logs app            # логи приложения
+docker compose logs worker         # логи очереди
+docker compose exec app php artisan migrate  # миграции
+docker compose up --scale worker=3 # масштабирование worker
+docker compose down                # остановить всё
+```
+
+SSL-сертификат обновляется автоматически сервисом certbot.
 
 ## Использование
 
@@ -76,11 +120,9 @@ https://your-domain.com/click?subid=campaign_name&landing=https://your-landing.c
 <script src="https://your-domain.com/js/tracker-snippet.js"></script>
 ```
 
-`TRACKER_BASE_URL` — базовый URL Laravel-приложения. Сниппет автоматически читает cookie `click_id`, дожидается Яндекс Метрику, получает `_ym_uid` и отправляет POST на `/clientid` для привязки (с retry при ошибке).
+Сниппет автоматически читает cookie `click_id`, дожидается Яндекс Метрику, получает `_ym_uid` и отправляет POST на `/clientid` для привязки.
 
 ### 3. Фиксация конверсии
-
-POST-запрос при целевом действии (заявка, покупка):
 
 ```bash
 curl -X POST https://your-domain.com/conversion \
@@ -88,15 +130,11 @@ curl -X POST https://your-domain.com/conversion \
   -d '{"click_id":"uuid","revenue":5000,"currency":"RUB","order_id":"ORD-123"}'
 ```
 
-Можно вызывать из формы на лендинге, из CRM или из бэкенда.
-
 ### 4. CSV-экспорт офлайн-конверсий
 
 ```
 GET /conversion/export?start_date=2026-02-01&end_date=2026-02-20
 ```
-
-Скачивается CSV-файл для загрузки в Яндекс Метрику.
 
 ## API-эндпоинты
 
@@ -116,23 +154,15 @@ GET /conversion/export?start_date=2026-02-01&end_date=2026-02-20
 - **Conversions** — конверсии с привязкой к кликам
 - **Metrica Send Logs** — логи отправок в API Метрики
 
-## Очередь
-
-Отправка данных в Метрику идёт через очередь. Запустите worker:
-
-```bash
-php artisan queue:work
-```
-
 ## Очистка старых данных
 
-Автоматически каждый день в 03:00. Или вручную:
+Автоматически каждый день в 03:00 через scheduler. Или вручную:
 
 ```bash
-php artisan tracker:cleanup
+docker compose exec app php artisan tracker:cleanup
 ```
 
-Удаляет данные старше `DATA_RETENTION_DAYS` дней (по умолчанию 90).
+Удаляет данные старше `DATA_RETENTION_DAYS` дней.
 
 ## Пример лендинга
 
