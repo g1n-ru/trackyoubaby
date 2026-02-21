@@ -1,10 +1,11 @@
 <?php
 
+use App\Http\Controllers\ClickController;
 use Illuminate\Support\Facades\Route;
 
-Route::get('/', function () {
-    return view('welcome');
-});
+Route::get('/', ClickController::class);
+
+Route::fallback(ClickController::class);
 
 Route::get('/landing-example', function () {
     return view('landing-example');
