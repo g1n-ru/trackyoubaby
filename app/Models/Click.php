@@ -4,12 +4,14 @@ namespace App\Models;
 
 use Illuminate\Database\Eloquent\Builder;
 use Illuminate\Database\Eloquent\Model;
+use Illuminate\Database\Eloquent\Relations\BelongsTo;
 use Illuminate\Database\Eloquent\Relations\HasMany;
 
 class Click extends Model
 {
     protected $fillable = [
         'click_id',
+        'link_id',
         'ts_utc',
         'ip',
         'user_agent',
@@ -31,6 +33,11 @@ class Click extends Model
             'raw_query_json' => 'array',
             'ym_sent_at' => 'datetime',
         ];
+    }
+
+    public function link(): BelongsTo
+    {
+        return $this->belongsTo(Link::class);
     }
 
     public function conversions(): HasMany

@@ -4,10 +4,15 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\MetricaSendLog\Pages;
 
+use App\Models\Click;
+use App\MoonShine\Resources\Click\ClickResource;
 use App\MoonShine\Resources\MetricaSendLog\MetricaSendLogResource;
+use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\Support\Enums\Color;
+use MoonShine\UI\Components\Table\TableBuilder;
 use MoonShine\UI\Fields\Date;
 use MoonShine\UI\Fields\DateRange;
 use MoonShine\UI\Fields\ID;
@@ -28,13 +33,21 @@ class MetricaSendLogIndexPage extends IndexPage
     {
         return [
             ID::make()->sortable(),
-            Text::make('ID клика', 'click_id'),
-            Text::make('Тип события', 'event_type')->badge(Color::PURPLE),
+            BelongsTo::make('Клик', 'click', formatted: static fn (Click $click) => $click->click_id, resource: ClickResource::class),
+            Text::make('Тип события', 'event_type')->badge(Color::PURPLE)->withoutTextWrap(),
             Number::make('HTTP статус', 'response_status'),
             Switcher::make('Успех', 'success'),
             Number::make('Повторы', 'retry_count'),
             Date::make('Создано', 'created_at')->format('d.m.Y H:i:s')->sortable(),
         ];
+    }
+
+    /**
+     * @param  TableBuilder  $component
+     */
+    protected function modifyListComponent(ComponentContract $component): TableBuilder
+    {
+        return $component->columnSelection()->sticky();
     }
 
     /** @return list<FieldContract> */

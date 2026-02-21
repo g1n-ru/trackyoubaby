@@ -4,12 +4,19 @@ declare(strict_types=1);
 
 namespace App\MoonShine\Resources\Conversion\Pages;
 
+use App\Models\Click;
+use App\Models\Link;
+use App\MoonShine\Resources\Click\ClickResource;
 use App\MoonShine\Resources\Conversion\ConversionResource;
+use App\MoonShine\Resources\Link\LinkResource;
+use MoonShine\Contracts\UI\ComponentContract;
 use MoonShine\Contracts\UI\FieldContract;
+use MoonShine\Laravel\Fields\Relationships\BelongsTo;
 use MoonShine\Laravel\Pages\Crud\IndexPage;
 use MoonShine\Support\Enums\FormMethod;
 use MoonShine\UI\Components\ActionButton;
 use MoonShine\UI\Components\FormBuilder;
+use MoonShine\UI\Components\Table\TableBuilder;
 use MoonShine\UI\Fields\Date;
 use MoonShine\UI\Fields\DateRange;
 use MoonShine\UI\Fields\ID;
@@ -30,13 +37,24 @@ class ConversionIndexPage extends IndexPage
     {
         return [
             ID::make()->sortable(),
-            Text::make('ID клика', 'click_id'),
+            BelongsTo::make('Ссылка', 'link', formatted: static fn (Link $link) => $link->name, resource: LinkResource::class)
+                ->columnSelection(hideOnInit: true),
+            BelongsTo::make('Клик', 'click', formatted: static fn (Click $click) => $click->click_id, resource: ClickResource::class),
+            Text::make('Цель', 'target')->withoutTextWrap(),
             Number::make('Доход', 'revenue')->sortable(),
-            Text::make('Валюта', 'currency'),
-            Text::make('ID заказа', 'order_id'),
+            Text::make('Валюта', 'currency')->withoutTextWrap(),
+            Text::make('ID заказа', 'order_id')->withoutTextWrap(),
             Date::make('Отправлено в YM', 'ym_sent_at')->format('d.m.Y H:i:s'),
             Date::make('Создано', 'created_at')->format('d.m.Y H:i:s')->sortable(),
         ];
+    }
+
+    /**
+     * @param  TableBuilder  $component
+     */
+    protected function modifyListComponent(ComponentContract $component): TableBuilder
+    {
+        return $component->columnSelection()->sticky();
     }
 
     /** @return list<FieldContract> */
@@ -44,6 +62,7 @@ class ConversionIndexPage extends IndexPage
     {
         return [
             Text::make('ID клика', 'click_id'),
+            Text::make('Цель', 'target'),
             Text::make('ID заказа', 'order_id'),
             RangeSlider::make('Доход', 'revenue')
                 ->min(0)

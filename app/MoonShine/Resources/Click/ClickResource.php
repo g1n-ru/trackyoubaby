@@ -18,7 +18,7 @@ use MoonShine\Support\ListOf;
  * @extends ModelResource<Click, ClickIndexPage, null, ClickDetailPage>
  */
 #[Icon('cursor-arrow-ripple')]
-#[Order(2)]
+#[Order(3)]
 class ClickResource extends ModelResource
 {
     protected string $model = Click::class;
@@ -26,6 +26,10 @@ class ClickResource extends ModelResource
     protected string $title = 'Клики';
 
     protected string $column = 'click_id';
+
+    protected array $with = ['link'];
+
+    protected bool $detailInModal = true;
 
     protected function activeActions(): ListOf
     {

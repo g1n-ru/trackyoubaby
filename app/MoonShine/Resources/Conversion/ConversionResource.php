@@ -18,14 +18,16 @@ use MoonShine\Support\ListOf;
  * @extends ModelResource<Conversion, ConversionIndexPage, null, ConversionDetailPage>
  */
 #[Icon('banknotes')]
-#[Order(3)]
+#[Order(4)]
 class ConversionResource extends ModelResource
 {
     protected string $model = Conversion::class;
 
     protected string $title = 'Конверсии';
 
-    protected array $with = ['click'];
+    protected array $with = ['click', 'link'];
+
+    protected bool $detailInModal = true;
 
     protected function activeActions(): ListOf
     {
@@ -45,6 +47,7 @@ class ConversionResource extends ModelResource
     {
         return [
             'click_id',
+            'target',
             'order_id',
         ];
     }

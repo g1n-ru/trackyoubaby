@@ -10,6 +10,8 @@ class Conversion extends Model
 {
     protected $fillable = [
         'click_id',
+        'link_id',
+        'target',
         'revenue',
         'currency',
         'order_id',
@@ -29,6 +31,11 @@ class Conversion extends Model
     public function click(): BelongsTo
     {
         return $this->belongsTo(Click::class, 'click_id', 'click_id');
+    }
+
+    public function link(): BelongsTo
+    {
+        return $this->belongsTo(Link::class);
     }
 
     public function scopeSentToMetrica(Builder $query): Builder

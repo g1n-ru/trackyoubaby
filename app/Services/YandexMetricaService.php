@@ -5,18 +5,21 @@ namespace App\Services;
 use App\Models\Click;
 use App\Models\Conversion;
 use App\Models\MetricaSendLog;
-use Illuminate\Support\Facades\Config;
 use Illuminate\Support\Facades\Http;
 use Illuminate\Support\Facades\Log;
 use Throwable;
 
 class YandexMetricaService
 {
+    private const API_URL = 'https://mc.yandex.ru/collect';
+
+    public function __construct(private SettingService $settingService) {}
+
     public function sendSessionParams(Click $click): bool
     {
-        $counterId = Config::get('tracker.metrica.counter_id');
-        $token = Config::get('tracker.metrica.token');
-        $apiUrl = Config::get('tracker.metrica.api_url');
+        $counterId = $this->settingService->getYmCounterId();
+        $token = $this->settingService->getYmToken();
+        $apiUrl = self::API_URL;
 
         $payload = [
             'counter_id' => $counterId,
@@ -32,15 +35,15 @@ class YandexMetricaService
 
     public function sendConversion(Conversion $conversion, Click $click): bool
     {
-        $counterId = Config::get('tracker.metrica.counter_id');
-        $token = Config::get('tracker.metrica.token');
-        $apiUrl = Config::get('tracker.metrica.api_url');
+        $counterId = $this->settingService->getYmCounterId();
+        $token = $this->settingService->getYmToken();
+        $apiUrl = self::API_URL;
 
         $payload = [
             'counter_id' => $counterId,
             'client_id' => $click->ym_uid,
             'goal' => [
-                'id' => 'conversion',
+                'id' => $conversion->target,
                 'revenue' => $conversion->revenue,
                 'currency' => $conversion->currency ?? 'RUB',
                 'order_id' => $conversion->order_id,
@@ -51,16 +54,15 @@ class YandexMetricaService
     }
 
     public function logApiCall(
-        string  $clickId,
-        string  $eventType,
-        array   $payload,
-        ?int    $responseStatus,
+        string $clickId,
+        string $eventType,
+        array $payload,
+        ?int $responseStatus,
         ?string $responseBody,
-        bool    $success,
-        int     $retryCount = 0,
+        bool $success,
+        int $retryCount = 0,
         ?string $errorMessage = null
-    ): MetricaSendLog
-    {
+    ): MetricaSendLog {
         return MetricaSendLog::create([
             'click_id' => $clickId,
             'event_type' => $eventType,
@@ -77,7 +79,7 @@ class YandexMetricaService
     {
         try {
             $response = Http::withHeaders([
-                'Authorization' => 'OAuth ' . $token,
+                'Authorization' => 'OAuth '.$token,
                 'Content-Type' => 'application/json',
             ])->post($url, $payload);
 
@@ -95,7 +97,7 @@ class YandexMetricaService
             return $success;
 
         } catch (Throwable $e) {
-            Log::error('Yandex Metrica API error: ' . $e->getMessage());
+            Log::error('Yandex Metrica API error: '.$e->getMessage());
 
             $this->logApiCall(
                 $clickId,

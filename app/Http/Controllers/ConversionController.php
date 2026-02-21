@@ -17,6 +17,7 @@ class ConversionController extends Controller
 
         $result = $conversionService->recordConversion(
             $validated['click_id'],
+            $validated['target'],
             $validated['revenue'] ?? null,
             $validated['currency'] ?? null,
             $validated['order_id'] ?? null,
@@ -41,7 +42,7 @@ class ConversionController extends Controller
 
         return response($csv, 200, [
             'Content-Type' => 'text/csv',
-            'Content-Disposition' => 'attachment; filename="conversions_' . $validated['start_date'] . '_' . $validated['end_date'] . '.csv"',
+            'Content-Disposition' => 'attachment; filename="conversions_'.$validated['start_date'].'_'.$validated['end_date'].'.csv"',
         ]);
     }
 }

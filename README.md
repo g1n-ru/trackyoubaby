@@ -23,8 +23,6 @@ cp .env.example .env
 APP_DOMAIN=your-domain.com
 APP_KEY=               # сгенерируется ниже
 DB_PASSWORD=secret
-YM_COUNTER_ID=12345678
-YM_TOKEN=your_oauth_token
 ```
 
 Запуск:
@@ -45,17 +43,11 @@ docker compose exec app php artisan key:generate
 |---|---|---|
 | `APP_DOMAIN` | Домен приложения | — |
 | `DB_PASSWORD` | Пароль MySQL root | — |
-| `YM_COUNTER_ID` | ID счётчика Яндекс Метрики | — |
-| `YM_TOKEN` | OAuth-токен Яндекс Метрики | — |
-| `YM_API_URL` | URL API Метрики | `https://mc.yandex.ru/collect` |
 | `RATE_LIMIT_CLICK` | Лимит запросов /click в минуту | 60 |
 | `RATE_LIMIT_CLIENTID` | Лимит запросов /clientid в минуту | 120 |
 | `RATE_LIMIT_CONVERSION` | Лимит запросов /conversion в минуту | 30 |
 | `TRACKER_COOKIE_MAX_AGE` | Время жизни cookie click_id (минуты) | 43200 |
-| `TRACKER_COOKIE_DOMAIN` | Домен cookie | `${APP_DOMAIN}` |
 | `RETRY_MAX_ATTEMPTS` | Макс. попыток отправки в Метрику | 3 |
-| `DEFAULT_LANDING_URL` | URL лендинга по умолчанию | `https://${APP_DOMAIN}/landing-example` |
-| `DATA_RETENTION_DAYS` | Хранение данных (дней) | 90 |
 
 ## Docker-сервисы
 
@@ -95,7 +87,7 @@ https://your-domain.com/click?subid=campaign_name&landing=https://your-landing.c
 Параметры:
 - `subid` — название кампании / источник
 - `subid2`, `subid3`, `subid4` — дополнительные метки
-- `landing` — URL лендинга для редиректа (если не указан — `DEFAULT_LANDING_URL`)
+- `landing` — URL лендинга для редиректа (если не указан — URL из настроек админки)
 
 При клике трекер записывает данные в БД, ставит cookie `click_id` и делает 302-редирект на лендинг.
 
@@ -162,7 +154,7 @@ GET /conversion/export?start_date=2026-02-01&end_date=2026-02-20
 docker compose exec app php artisan tracker:cleanup
 ```
 
-Удаляет данные старше `DATA_RETENTION_DAYS` дней.
+Удаляет данные старше срока хранения, указанного в настройках админки.
 
 ## Пример лендинга
 

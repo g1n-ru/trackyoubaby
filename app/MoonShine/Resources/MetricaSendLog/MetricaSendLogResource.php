@@ -18,12 +18,16 @@ use MoonShine\Support\ListOf;
  * @extends ModelResource<MetricaSendLog, MetricaSendLogIndexPage, null, MetricaSendLogDetailPage>
  */
 #[Icon('paper-airplane')]
-#[Order(4)]
+#[Order(5)]
 class MetricaSendLogResource extends ModelResource
 {
     protected string $model = MetricaSendLog::class;
 
     protected string $title = 'Логи Метрики';
+
+    protected array $with = ['click'];
+
+    protected bool $detailInModal = true;
 
     protected function activeActions(): ListOf
     {

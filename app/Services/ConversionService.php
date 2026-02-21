@@ -10,14 +10,17 @@ class ConversionService
 {
     public function recordConversion(
         string $clickId,
+        string $target,
         ?float $revenue = null,
         ?string $currency = null,
-        ?string $orderId = null
+        ?string $orderId = null,
     ): array {
         $click = Click::where('click_id', $clickId)->firstOrFail();
 
         $conversion = Conversion::create([
             'click_id' => $clickId,
+            'link_id' => $click->link_id,
+            'target' => $target,
             'revenue' => $revenue,
             'currency' => $currency,
             'order_id' => $orderId,
@@ -49,7 +52,7 @@ class ConversionService
 
             $csv .= implode(',', [
                 $ymUid,
-                'conversion',
+                $conversion->target,
                 $dateTime,
                 $price,
                 $currency,

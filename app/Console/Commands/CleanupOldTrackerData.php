@@ -4,9 +4,9 @@ namespace App\Console\Commands;
 
 use App\Models\Click;
 use App\Models\MetricaSendLog;
+use App\Services\SettingService;
 use Illuminate\Console\Command;
 use Illuminate\Database\Eloquent\Model;
-use Illuminate\Support\Facades\Config;
 
 class CleanupOldTrackerData extends Command
 {
@@ -14,9 +14,14 @@ class CleanupOldTrackerData extends Command
 
     protected $description = 'Remove tracker data older than the configured retention period';
 
+    public function __construct(private SettingService $settingService)
+    {
+        parent::__construct();
+    }
+
     public function handle(): int
     {
-        $days = Config::get('tracker.data_retention_days');
+        $days = $this->settingService->getDataRetentionDays();
         $cutoff = now()->subDays($days);
         $chunkSize = (int) $this->option('chunk');
 
