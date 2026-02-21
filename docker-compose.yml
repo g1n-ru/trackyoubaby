@@ -44,8 +44,6 @@ services:
 
   mysql:
     image: mysql:8.4
-    ports:
-      - "3306:3306"
     environment:
       MYSQL_DATABASE: ${DB_DATABASE:-trackyoubaby}
       MYSQL_ROOT_PASSWORD: ${DB_PASSWORD:-secret}
@@ -62,8 +60,6 @@ services:
 
   redis:
     image: redis:7-alpine
-    ports:
-      - "6379:6379"
     volumes:
       - redis_data:/data
     healthcheck:
