@@ -12,7 +12,6 @@ use MoonShine\Contracts\UI\FieldContract;
 use MoonShine\Laravel\Pages\Crud\FormPage;
 use MoonShine\UI\Fields\Switcher;
 use MoonShine\UI\Fields\Text;
-use MoonShine\UI\Fields\Url;
 
 /**
  * @extends FormPage<LinkResource>
@@ -33,7 +32,7 @@ class LinkFormPage extends FormPage
                 ->default(Link::generateUniqueSlug())
                 ->placeholder('landing-example')
                 ->hint('Измените или оставьте предложенный вариант'),
-            Url::make('URL лендинга', 'landing_url')
+            Text::make('URL лендинга', 'landing_url')
                 ->default('https://')
                 ->required(),
             Switcher::make('Активна', 'is_active')
@@ -54,7 +53,7 @@ class LinkFormPage extends FormPage
                 'regex:/^[a-z0-9\-]+(\/[a-z0-9\-]+)?$/',
                 'unique:links,slug'.($linkId ? ','.$linkId : ''),
             ],
-            'landing_url' => ['required', 'url', 'max:2048'],
+            'landing_url' => ['required', 'regex:/^https?:\/\/.+/i', 'max:2048'],
             'is_active' => ['boolean'],
         ];
     }
