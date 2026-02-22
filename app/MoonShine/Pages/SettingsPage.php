@@ -10,6 +10,7 @@ use App\Models\Conversion;
 use App\Models\MetricaSendLog;
 use App\Services\SettingService;
 use Illuminate\Http\Request;
+use Illuminate\Support\Facades\Cache;
 use Illuminate\Support\Facades\Schema;
 use Illuminate\Support\Facades\Validator;
 use Illuminate\Validation\ValidationException;
@@ -155,6 +156,8 @@ class SettingsPage extends Page
         Conversion::truncate();
         Click::truncate();
         Schema::enableForeignKeyConstraints();
+
+        Cache::forget('dashboard:metrics');
 
         session()->flash('toast', [
             'type' => 'success',
