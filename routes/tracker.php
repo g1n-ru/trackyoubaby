@@ -9,7 +9,7 @@ Route::middleware('throttle:click')->get('/click', ClickController::class)->name
 
 Route::middleware('throttle:clientid')->post('/clientid', ClientIdController::class)->name('tracker.clientid');
 
-Route::middleware('throttle:conversion')->post('/conversion', [ConversionController::class, 'store'])->name('tracker.conversion.store');
+Route::middleware('throttle:conversion')->match(['get', 'post'], '/conversion', [ConversionController::class, 'store'])->name('tracker.conversion.store');
 
 Route::middleware([
     'moonshine',

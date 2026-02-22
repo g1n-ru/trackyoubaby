@@ -166,7 +166,7 @@ class InstructionsPage extends Page
     {
         $hl = fn (string $val): string => $this->highlight($val);
 
-        $curlCode = e('curl -X POST '.$appUrl.'/conversion \\'."\n".'  -H "Content-Type: application/json" \\'."\n".'  -d \'{"click_id": "')
+        $postCode = e('curl -X POST '.$appUrl.'/conversion \\'."\n".'  -H "Content-Type: application/json" \\'."\n".'  -d \'{"click_id": "')
             .$hl('uuid-клика')
             .e('", "target": "')
             .$hl('purchase')
@@ -178,9 +178,23 @@ class InstructionsPage extends Page
             .$hl('ORD-123')
             .e('"}\'');
 
+        $getCode = e($appUrl.'/conversion?click_id=')
+            .$hl('uuid-клика')
+            .e('&target=')
+            .$hl('purchase')
+            .e('&revenue=')
+            .$hl('5000')
+            .e('&currency=')
+            .$hl('RUB')
+            .e('&order_id=')
+            .$hl('ORD-123');
+
         return $this->card(
-            'Отправьте POST-запрос при целевом действии (заявка, покупка):',
-            $this->codeBlock($curlCode)
+            'Отправьте запрос при целевом действии (заявка, покупка):',
+            $this->label('POST-запрос (JSON)')
+            .$this->codeBlock($postCode)
+            .$this->label('GET-запрос (query-параметры)')
+            .$this->codeBlock($getCode)
             .$this->table(
                 ['Поле', 'Тип', '', 'Описание'],
                 [
@@ -192,6 +206,7 @@ class InstructionsPage extends Page
                 ]
             )
             .$this->hint('Поле <code>target</code> используется как идентификатор цели при отправке в Яндекс Метрику.')
+            .$this->hint('GET-запрос удобен для серверных интеграций и CRM, где нельзя отправить POST (например, через пиксель или редирект).')
             .$this->hint('Можно вызывать из формы на лендинге, CRM или бэкенда. Данные отправляются в Яндекс Метрику через очередь.')
             .$this->hint($this->highlight('Выделенные значения').' — замените на свои.')
         );
@@ -224,7 +239,7 @@ class InstructionsPage extends Page
                     [$getBadge, '<code>/click</code>', 'Трекинг клика + редирект', '60/мин'],
                     [$getBadge, '<code>/{slug}</code>', 'ЧПУ-ссылка &rarr; редирект на лендинг', '60/мин'],
                     [$postBadge, '<code>/clientid</code>', 'Привязка YM Client ID', '120/мин'],
-                    [$postBadge, '<code>/conversion</code>', 'Фиксация конверсии', '30/мин'],
+                    [$getBadge.' '.$postBadge, '<code>/conversion</code>', 'Фиксация конверсии', '30/мин'],
                 ]
             )
         );
