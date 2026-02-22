@@ -24,7 +24,7 @@ class Link extends Model
 
     protected function fullUrl(): Attribute
     {
-        return Attribute::get(fn (): string => url($this->slug));
+        return Attribute::get(fn(): string => url($this->slug));
     }
 
     public function clicks(): HasMany
@@ -69,9 +69,9 @@ class Link extends Model
         ];
 
         $patterns = [
-            fn () => $adjectives[array_rand($adjectives)].'-'.$nouns[array_rand($nouns)],
-            fn () => $prefixes[array_rand($prefixes)].'/'.$adjectives[array_rand($adjectives)].'-'.$nouns[array_rand($nouns)],
-            fn () => $adjectives[array_rand($adjectives)].'-'.$nouns[array_rand($nouns)].'/'.$prefixes[array_rand($prefixes)],
+            fn() => $adjectives[array_rand($adjectives)] . '-' . $nouns[array_rand($nouns)],
+            fn() => $prefixes[array_rand($prefixes)] . '/' . $adjectives[array_rand($adjectives)] . '-' . $nouns[array_rand($nouns)],
+            fn() => $adjectives[array_rand($adjectives)] . '-' . $nouns[array_rand($nouns)] . '/' . $prefixes[array_rand($prefixes)],
         ];
 
         do {

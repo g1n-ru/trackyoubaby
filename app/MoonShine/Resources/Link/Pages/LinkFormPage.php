@@ -28,12 +28,13 @@ class LinkFormPage extends FormPage
                 ->required(),
             Text::make('Slug', 'slug')
                 ->required()
-                ->prefix($baseUrl.'/')
+                ->prefix($baseUrl . '/')
                 ->default(Link::generateUniqueSlug())
                 ->placeholder('landing-example')
                 ->hint('Измените или оставьте предложенный вариант'),
             Text::make('URL лендинга', 'landing_url')
                 ->default('https://')
+                ->unescape()
                 ->required(),
             Switcher::make('Активна', 'is_active')
                 ->default(true),
@@ -51,7 +52,7 @@ class LinkFormPage extends FormPage
                 'string',
                 'max:255',
                 'regex:/^[a-z0-9\-]+(\/[a-z0-9\-]+)?$/',
-                'unique:links,slug'.($linkId ? ','.$linkId : ''),
+                'unique:links,slug' . ($linkId ? ',' . $linkId : ''),
             ],
             'landing_url' => ['required', 'regex:/^https?:\/\/.+/i', 'max:2048'],
             'is_active' => ['boolean'],
